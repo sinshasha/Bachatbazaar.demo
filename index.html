@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f2f4ef">
+  <title>BachatBazaar · Grocery bids</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f2f4ef;
+      --surface: #fff;
+      --surface-soft: #e7ebe3;
+      --line: #d3dace;
+      --ink: #17201b;
+      --muted: #5b685f;
+      --green: #0e6b52;
+      --green-soft: #ddefe6;
+      --gold: #a86f00;
+      --gold-soft: #fbefd2;
+      --blue: #315c83;
+      --blue-soft: #e4edf5;
+      --orange: #a64a12;
+      --orange-soft: #fbe7da;
+      --shadow: 0 1px 2px rgb(20 40 30 / 6%), 0 8px 26px rgb(20 40 30 / 5%);
+      --display: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
+      --body: "Figtree", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--bg); font: 15px/1.45 var(--body); font-variant-numeric: tabular-nums; }
+    button, input { color: inherit; font: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--display); text-wrap: balance; }
+    .topbar { min-height: 62px; display: flex; align-items: center; gap: 14px; padding: 10px 24px; border-bottom: 1px solid var(--line); background: rgb(242 244 239 / 94%); position: sticky; top: 0; z-index: 5; backdrop-filter: blur(12px); }
+    .brand { font: 800 25px/1 var(--display); display: inline-flex; align-items: center; gap: 7px; }
+    .brand-mark { width: 9px; height: 9px; background: var(--green); border-radius: 50%; margin-top: 8px; }
+    .phase-label, .eyebrow { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .phase-label { border: 1px solid var(--line); border-radius: 99px; padding: 4px 9px; }
+    .top-spacer { flex: 1; }
+    .session-name { font-size: 13px; color: var(--muted); }
+    .quiet-button { border: 0; background: transparent; color: var(--green); font-weight: 700; padding: 8px; }
+    .login-wrap { width: min(100% - 32px, 980px); margin: 0 auto; padding: 52px 0 72px; }
+    .login-intro { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(220px, .8fr); align-items: end; gap: 30px; margin-bottom: 30px; }
+    .login-intro h1 { max-width: 620px; font-size: clamp(38px, 6vw, 64px); line-height: 1.02; font-weight: 800; }
+    .login-intro h1 span { color: var(--green); }
+    .login-intro p { max-width: 38ch; color: var(--muted); font-size: 16px; }
+    .role-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .role-card { text-align: left; min-height: 190px; display: flex; flex-direction: column; gap: 13px; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; padding: 17px; box-shadow: var(--shadow); transition: transform .18s ease, border-color .18s ease; }
+    .role-card:hover { transform: translateY(-3px); border-color: var(--green); }
+    .role-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: var(--green-soft); color: var(--green); }
+    .role-card[data-role="retailer"] .role-icon { background: var(--gold-soft); color: var(--gold); }
+    .role-card[data-role="rider"] .role-icon { background: var(--blue-soft); color: var(--blue); }
+    .role-card[data-role="ops"] .role-icon { background: var(--orange-soft); color: var(--orange); }
+    .role-icon svg { width: 20px; height: 20px; }
+    .role-card strong { display: block; font: 700 20px/1.1 var(--display); }
+    .role-card small { display: block; margin-top: 5px; color: var(--muted); font-size: 13px; }
+    .login-foot { display: flex; gap: 9px; align-items: center; margin-top: 20px; color: var(--muted); font-size: 13px; }
+    .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
+    .app-shell { width: min(100%, 1320px); min-height: calc(100dvh - 62px); margin: 0 auto; padding: 25px 24px 48px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 27px; }
+    .side { align-self: start; position: sticky; top: 85px; display: flex; flex-direction: column; gap: 20px; }
+    .zone-card { border-radius: 12px; background: var(--green); color: white; padding: 16px; }
+    .zone-card .eyebrow { color: #cce5d9; }
+    .zone-card h2 { font-size: 21px; margin-top: 7px; }
+    .zone-card p { margin-top: 3px; color: #e5f2eb; font-size: 13px; }
+    .side-nav { display: flex; flex-direction: column; gap: 4px; }
+    .nav-button { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; border: 0; border-radius: 9px; padding: 10px 11px; background: transparent; color: var(--muted); font-weight: 600; }
+    .nav-button svg { width: 17px; height: 17px; }
+    .nav-button:hover, .nav-button[aria-current="page"] { color: var(--ink); background: var(--surface); box-shadow: 0 1px 3px rgb(20 40 30 / 7%); }
+    .side-note { border-top: 1px solid var(--line); padding-top: 14px; color: var(--muted); font-size: 12px; }
+    .main-content { min-width: 0; }
+    .page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 2px 0 22px; }
+    .page-head h1 { font-size: 34px; line-height: 1.05; margin-top: 5px; }
+    .page-head p { color: var(--muted); margin-top: 7px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; padding: 5px 10px; background: var(--green-soft); color: var(--green); font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .badge.gold { background: var(--gold-soft); color: var(--gold); }
+    .badge.blue { background: var(--blue-soft); color: var(--blue); }
+    .badge.orange { background: var(--orange-soft); color: var(--orange); }
+    .badge-dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; margin-bottom: 18px; }
+    .stat { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 11px; padding: 14px 15px; box-shadow: var(--shadow); }
+    .stat span { display: block; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .stat strong { display: block; margin-top: 5px; font: 700 28px/1.1 var(--display); }
+    .stat small { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .columns { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); gap: 15px; }
+    .panel { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 17px; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { font-size: 18px; }
+    .panel-body { padding: 16px 17px; }
+    .readiness { display: flex; flex-direction: column; gap: 15px; }
+    .readiness-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .readiness-label { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .readiness-icon { flex: 0 0 auto; display: grid; place-items: center; width: 33px; height: 33px; border-radius: 9px; background: var(--surface-soft); color: var(--green); }
+    .readiness-icon svg { width: 17px; height: 17px; }
+    .readiness-label b { display: block; font-size: 14px; }
+    .readiness-label small { color: var(--muted); font-size: 12px; }
+    .divider { height: 1px; background: var(--line); }
+    .field-list { display: flex; flex-direction: column; }
+    .field-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .field-row:last-child { border-bottom: 0; }
+    .field-row span { color: var(--muted); }
+    .field-row strong { text-align: right; }
+    .role-banner { display: flex; align-items: flex-start; gap: 13px; padding: 17px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
+    .role-banner .role-icon { flex: 0 0 auto; }
+    .role-banner h2 { font-size: 20px; }
+    .role-banner p { color: var(--muted); margin-top: 4px; font-size: 13px; }
+    .privacy-box { margin-top: 15px; border: 1px solid var(--line); border-radius: 11px; padding: 15px; background: var(--surface); }
+    .privacy-box h3 { font: 700 13px var(--body); }
+    .privacy-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+    .privacy-columns span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .privacy-columns p { font-size: 13px; }
+    .privacy-columns .never { color: var(--orange); }
+    .data-toolbar { display: flex; gap: 8px; flex-wrap: wrap; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+    .filter-button { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 7px 10px; font-size: 13px; font-weight: 600; }
+    .filter-button[aria-pressed="true"] { border-color: var(--green); background: var(--green-soft); color: var(--green); }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 10px 14px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    .n { text-align: right; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .td-muted { color: var(--muted); }
+    .config-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 22px; }
+    .config-field { display: flex; flex-direction: column; gap: 6px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .config-field label { display: flex; justify-content: space-between; gap: 9px; font-size: 13px; font-weight: 700; }
+    .config-field small { color: var(--muted); font-size: 12px; }
+    .config-field input { width: 100%; max-width: 190px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 8px 10px; }
+    .config-field input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--green); margin-right: auto; }
+    .config-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; }
+    .button { border: 1px solid var(--line); border-radius: 9px; padding: 9px 13px; background: var(--surface); font-weight: 700; }
+    .button:hover { border-color: var(--muted); }
+    .button.primary { border-color: var(--green); background: var(--green); color: white; }
+    .button.primary:hover { filter: brightness(1.06); }
+    .toast { position: fixed; right: 18px; bottom: 18px; z-index: 10; max-width: min(390px, calc(100vw - 36px)); padding: 11px 15px; border-radius: 9px; background: var(--ink); color: white; box-shadow: var(--shadow); font-weight: 600; animation: toast-in .18s ease-out; }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    .empty-state { padding: 26px 18px; text-align: center; color: var(--muted); }
+    .notice { border-left: 3px solid var(--gold); padding: 10px 12px; background: var(--gold-soft); color: #604500; border-radius: 0 8px 8px 0; font-size: 13px; }
+    .voice-order { margin: 15px 0; padding: 17px; border-radius: 13px; background: #14251d; color: #f3f5ef; box-shadow: var(--shadow); }
+    .voice-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .voice-top h2 { font-size: 20px; }
+    .voice-top p { margin-top: 4px; color: #b8c8bd; font-size: 13px; }
+    .language-switch { flex: 0 0 auto; display: inline-flex; gap: 2px; border: 1px solid #52665a; border-radius: 9px; padding: 3px; }
+    .language-switch button { border: 0; border-radius: 6px; padding: 6px 8px; background: transparent; color: #d1dcd4; font-size: 11px; font-weight: 700; }
+    .language-switch button[aria-pressed="true"] { background: #f5bf47; color: #18251d; }
+    .voice-input-row { display: flex; align-items: center; gap: 11px; margin-top: 15px; }
+    .voice-mic { flex: 0 0 auto; width: 46px; height: 46px; display: grid; place-items: center; border: 0; border-radius: 50%; background: #f5bf47; color: #17251d; font-size: 20px; }
+    .voice-mic[aria-pressed="true"] { box-shadow: 0 0 0 5px rgb(245 191 71 / 23%); animation: voice-pulse 1.15s ease-in-out infinite; }
+    @keyframes voice-pulse { 50% { transform: scale(1.06); } }
+    .voice-input-row textarea { flex: 1; min-width: 0; min-height: 70px; resize: vertical; border: 1px solid #52665a; border-radius: 9px; padding: 9px 10px; background: #1d3026; color: #f3f5ef; }
+    .voice-input-row textarea::placeholder { color: #a9b9ae; }
+    .voice-sample { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: #f5cf75; text-decoration: underline; text-underline-offset: 3px; padding: 8px 0 0; font-size: 12px; }
+    .voice-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    .voice-button { border: 1px solid #9baaa0; border-radius: 8px; padding: 8px 11px; background: transparent; color: #f3f5ef; font-weight: 700; font-size: 13px; }
+    .voice-button.primary { border-color: #f5bf47; background: #f5bf47; color: #17251d; }
+    .voice-results { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+    .voice-chip { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; border: 1px solid #516357; border-radius: 8px; padding: 6px 8px; background: #20352a; color: #eff5ef; font-size: 12px; }
+    .voice-chip.unknown { background: #45371d; border-color: #796334; color: #ffe19a; }
+    .voice-chip button { border: 0; padding: 0 2px; background: transparent; color: inherit; font-size: 16px; line-height: 1; }
+    .voice-empty { margin-top: 10px; color: #b8c8bd; font-size: 12px; }
+    .voice-error { margin-top: 10px; color: #ffe19a; font-size: 12px; }
+    @media (max-width: 900px) {
+      .role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .app-shell { grid-template-columns: 180px minmax(0, 1fr); gap: 18px; padding-inline: 18px; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .columns { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .topbar { min-height: 56px; padding: 9px 15px; gap: 9px; }
+      .brand { font-size: 23px; }
+      .phase-label { font-size: 10px; }
+      .session-name { display: none; }
+      .login-wrap { width: min(100% - 28px, 480px); padding-top: 34px; }
+      .login-intro { display: block; margin-bottom: 23px; }
+      .login-intro h1 { font-size: 43px; }
+      .login-intro p { margin-top: 14px; font-size: 15px; }
+      .role-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+      .role-card { min-height: 166px; padding: 13px; gap: 10px; }
+      .role-card strong { font-size: 18px; }
+      .role-card small { font-size: 12px; }
+      .app-shell { display: block; padding: 18px 14px 34px; }
+      .side { position: static; gap: 10px; margin-bottom: 20px; }
+      .zone-card { padding: 12px 14px; }
+      .zone-card h2 { font-size: 18px; }
+      .zone-card p { display: inline; margin-left: 5px; }
+      .side-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+      .nav-button { justify-content: center; gap: 6px; padding: 9px 5px; font-size: 12px; }
+      .side-note { display: none; }
+      .page-head { align-items: flex-start; margin-bottom: 17px; }
+      .page-head h1 { font-size: 29px; }
+      .page-head p { font-size: 13px; }
+      .page-head > .badge { margin-top: 19px; }
+      .voice-order { padding: 14px; }
+      .voice-top { flex-direction: column; }
+      .language-switch { max-width: 100%; }
+      .language-switch button { padding-inline: 7px; }
+      .stats { gap: 8px; margin-bottom: 12px; }
+      .stat { padding: 11px 12px; }
+      .stat strong { font-size: 25px; }
+      .panel-head, .panel-body { padding-inline: 13px; }
+      .privacy-columns { grid-template-columns: 1fr; gap: 11px; }
+      .config-grid { grid-template-columns: 1fr; }
+      .config-field { flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
+      .config-field > div { min-width: 0; }
+      .config-field label { display: block; }
+      .config-field input { max-width: 112px; }
+      th, td { padding-inline: 10px; }
+    }
+    @media (max-width: 370px) {
+      .role-grid { grid-template-columns: 1fr; }
+      .role-card { min-height: 122px; display: grid; grid-template-columns: 40px 1fr; align-items: center; }
+      .role-card > span:last-child { grid-column: 2; }
+      .side-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+  </style>
+    <link rel="stylesheet" href="full-app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">BachatBazaar<span class="brand-mark" aria-hidden="true"></span></div>
+    <span class="phase-label">Phase 1 · Foundation</span>
+    <span class="top-spacer"></span>
+    <span class="session-name" id="session-name"></span>
+    <button class="quiet-button" id="switch-account" type="button" hidden>Switch account</button>
+  </header>
+  <main id="app" aria-live="polite"></main>
+  <div id="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script>
+    const STORE_KEY = 'boli-foundation-v1';
+    const DEFAULT_CONFIG = {
+      commission_percent: 4,
+      delivery_fee: 29,
+      min_basket_value: 799,
+      extra_pickup_cost: 40,
+      bid_floor_ratio: 85,
+      bid_window_minutes: 10,
+      bid_extension_minutes: 5,
+      minimum_bids: 3,
+      maximum_extensions: 1,
+      slot_capacity: 20,
+      min_stores_to_open: 15,
+      retailer_suspension_days: 7,
+      fresh_enabled: false
+    };
+    const CONFIG_FIELDS = [
+      ['commission_percent', 'Winning-bid commission', '%', 'Applied to the winning bid.'],
+      ['delivery_fee', 'Customer delivery fee', '₹', 'Flat customer delivery fee.'],
+      ['min_basket_value', 'Minimum basket value', '₹', 'Estimated at MRP before an order can be sent.'],
+      ['extra_pickup_cost', 'Extra pickup cost', '₹', 'Threshold for offering a split basket.'],
+      ['bid_floor_ratio', 'Bid floor', '% of benchmark', 'Lowest permitted line price.'],
+      ['bid_window_minutes', 'Bidding window', 'minutes', 'Default open-bid window.'],
+      ['bid_extension_minutes', 'One-time extension', 'minutes', 'Extension when the bid minimum is not met.'],
+      ['minimum_bids', 'Minimum bids', 'bids', 'Guaranteed bid count shown to customers.'],
+      ['maximum_extensions', 'Maximum extensions', 'extensions', 'The window will not extend more than this.'],
+      ['slot_capacity', 'Slot capacity', 'orders', 'Maximum orders in one zone delivery slot.'],
+      ['min_stores_to_open', 'Stores to open zone', 'stores', 'Active-store threshold for customer access.'],
+      ['retailer_suspension_days', 'Suspension period', 'days', 'Automatic suspension after repeated short-picks.'],
+      ['fresh_enabled', 'Fresh category', 'boolean', 'Loose and fresh products remain disabled at launch.']
+    ];
+    const ACCOUNTS = {
+      customer: { role: 'Customer', name: 'Ananya Kulkarni', initials: 'AK', color: 'green', description: 'Kothrud resident' },
+      retailer: { role: 'Retailer', name: 'Shree Ganesh Kirana', initials: 'SG', color: 'gold', description: 'Kothrud · active store' },
+      rider: { role: 'Rider', name: 'Kunal Jadhav', initials: 'KJ', color: 'blue', description: 'Pune delivery team' },
+      ops: { role: 'Ops admin', name: 'BachatBazaar Operations', initials: 'BO', color: 'orange', description: 'Zone and platform operations' }
+    };
+    const STORES = [
+      'Shree Ganesh Kirana', 'Patil Provision Stores', 'FreshMart Mini', 'Om Sai General Store',
+      'Joshi Super Market', 'Mahalaxmi Kirana', 'Kothrud Daily Needs', 'Siddhi Vinayak Stores',
+      'New India Provision', 'Vijay Traders', 'Krishna Super Shop', 'Sai Krupa General',
+      'Shivneri Daily Mart', 'Dhanlaxmi Kirana', 'Morya Stores', 'Prakash Provision',
+      'Annapurna General Store', 'Samarth Mini Market'
+    ];
+    const CATALOGUE = [
+      ['Wheat atta', 'Aashirvaad, Pillsbury, Fortune', 'Packaged'],
+      ['Rice', 'India Gate, Daawat, Fortune', 'Packaged'],
+      ['Milk', 'Amul, Gokul, Chitale', 'Packaged'],
+      ['Sugar', 'Madhur, Trust, Dhampure', 'Packaged'],
+      ['Toor dal', 'Tata Sampann, Fortune, 24 Mantra', 'Packaged'],
+      ['Cooking oil', 'Fortune, Saffola, Gemini', 'Packaged'],
+      ['Detergent powder', 'Surf Excel, Ariel, Tide, Rin', 'Packaged'],
+      ['Tea', 'Tata Tea Gold, Red Label, Wagh Bakri', 'Packaged'],
+      ['Bread', 'Britannia, Modern, Harvest Gold', 'Packaged'],
+      ['Eggs', 'Eggoz, Keggs, Country Delight', 'Packaged'],
+      ['Butter', 'Amul, Mother Dairy, Britannia', 'Packaged'],
+      ['Salt', 'Tata Salt, Aashirvaad, Catch', 'Packaged'],
+      ['Paneer', 'Amul, Gowardhan, Chitale', 'Packaged'],
+      ['Bath soap', 'Dove, Lux, Dettol', 'Packaged'],
+      ['Toothpaste', 'Colgate, Pepsodent, Sensodyne', 'Packaged'],
+      ['Biscuits', 'Parle-G, Good Day, Marie Gold', 'Packaged']
+    ];
+    const SKU_PRICES = [
+      [58, 55, 52], [128, 118, 92], [66, 64, 68], [54, 48, 52], [182, 168, 198], [158, 205, 148],
+      [235, 255, 175], [165, 150, 145], [50, 45, 55], [60, 66, 63], [58, 56, 55], [28, 26, 25],
+      [95, 92, 98], [245, 150, 190], [105, 92, 215], [10, 35, 30]
+    ];
+    const SKU_PACKS = [
+      [['500 g', .5], ['1 kg', 1], ['5 kg', 4.8]], [['500 g', .5], ['1 kg', 1], ['5 kg', 4.8]],
+      [['500 ml', .55], ['1 L', 1], ['2 L', 1.9]], [['500 g', .5], ['1 kg', 1], ['5 kg', 4.8]],
+      [['500 g', .53], ['1 kg', 1], ['2 kg', 1.94]], [['500 ml', .55], ['1 L', 1], ['5 L', 4.7]],
+      [['500 g', .58], ['1 kg', 1], ['2 kg', 1.9]], [['250 g', .58], ['500 g', 1], ['1 kg', 1.9]],
+      [['400 g', .82], ['600 g', 1.2], ['800 g', 1.55]], [['6 eggs', .52], ['12 eggs', 1], ['30 eggs', 2.35]],
+      [['100 g', .55], ['500 g', 2.3], ['1 kg', 4.4]], [['500 g', .52], ['1 kg', 1], ['5 kg', 4.8]],
+      [['200 g', 1], ['500 g', 2.35], ['1 kg', 4.5]], [['4 bars', 1], ['6 bars', 1.42], ['8 bars', 1.86]],
+      [['50 g', .42], ['100 g', .72], ['150 g', 1]], [['100 g', .48], ['200 g', 1], ['400 g', 1.9]]
+    ];
+    const SKU_SEEDS = (() => {
+      const rows = [];
+      CATALOGUE.forEach(([product, brands, category], productIndex) => {
+        const packOptions = SKU_PACKS[productIndex];
+        brands.split(', ').forEach((brand, brandIndex) => {
+          packOptions.forEach(([pack, multiplier], packIndex) => {
+            const mrp = Math.max(1, Math.round(SKU_PRICES[productIndex][brandIndex] * multiplier));
+            rows.push({ id: `SKU-${String(rows.length + 1).padStart(3, '0')}`, product, brand, pack, category, mrp, benchmark: Math.max(1, Math.round(mrp * .9)) });
+          });
+        });
+      });
+      for (let index = 0; index < 6; index++) {
+        const [product, brands, category] = CATALOGUE[index];
+        const brand = brands.split(', ')[0];
+        const mrp = Math.round(SKU_PRICES[index][0] * 9.1);
+        rows.push({ id: `SKU-${String(rows.length + 1).padStart(3, '0')}`, product, brand, pack: index === 2 || index === 5 ? '5 L' : '10 kg', category, mrp, benchmark: Math.round(mrp * .9) });
+      }
+      return rows.slice(0, 150);
+    })();
+    const SCHEMA_TABLES = ['zones', 'stores', 'users', 'products', 'brands', 'skus', 'benchmark_prices', 'synonyms', 'orders', 'order_lines', 'bids', 'bid_lines', 'retailer_prices', 'slots', 'deliveries', 'pickup_checks', 'line_rejections', 'payments', 'refunds', 'payouts', 'retailer_scores', 'flags', 'config'];
+    const SYNONYMS = [
+      ['aadha kilo', '500 g', 'Unit'], ['pav kilo', '250 g', 'Unit'], ['dedh kilo', '1.5 kg', 'Unit'],
+      ['ek litre', '1 L', 'Unit'], ['darjan', '12 count', 'Unit'], ['namak', 'salt', 'Product'],
+      ['cheeni / shakkar', 'sugar', 'Product'], ['atta / gehu', 'wheat flour', 'Product'],
+      ['doodh', 'milk', 'Product'], ['anda', 'eggs', 'Product'], ['tel', 'cooking oil', 'Product'],
+      ['tata nano', 'Tata Namak', 'Mishearing'], ['fortune wala', 'brand lock: Fortune', 'Brand lock']
+    ];
+    const ICONS = {
+      customer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>',
+      retailer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18l-1.5-6h-15L3 10Z"/><path d="M5 10v10h14V10M9 20v-6h6v6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg>',
+      rider: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-8h4l4 8M10 9H7M13 9l-2 4h5M16 6h3"/></svg>',
+      ops: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.64 5.64l2.12 2.12m8.48 8.48 2.12 2.12m0-12.72-2.12 2.12m-8.48 8.48-2.12 2.12"/><circle cx="12" cy="12" r="4"/></svg>',
+      overview: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg>',
+      data: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"/></svg>',
+      config: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M2 14h4m4-6h4m4 6h4"/></svg>',
+      pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+      shop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18l-1.5-6h-15L3 10Zm2 0v10h14V10M9 20v-6h6v6"/></svg>',
+      box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="M3 8v9l9 5 9-5V8m-9 5v9"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>',
+      mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg>'
+    };
+    let state = loadState();
+    let activeTab = 'overview';
+    let dataTab = 'stores';
+    let customerDraft = { text: '', items: [], unknown: [], listening: false, error: '' };
+    let speechRecognizer = null;
+
+    function loadState() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+        return { account: stored?.account && ACCOUNTS[stored.account] ? stored.account : null, config: { ...DEFAULT_CONFIG, ...(stored?.config || {}) }, language: ['en', 'hi', 'mix'].includes(stored?.language) ? stored.language : 'mix' };
+      } catch { return { account: null, config: { ...DEFAULT_CONFIG }, language: 'mix' }; }
+    }
+    function persist() {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { showToast('Local storage is unavailable in this browser.'); }
+    }
+    function esc(value) { return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]); }
+    function roleIcon(role) { return `<span class="role-icon" aria-hidden="true">${ICONS[role]}</span>`; }
+    function showToast(message) {
+      const region = document.getElementById('toast-region');
+      region.innerHTML = `<div class="toast" role="status">${esc(message)}</div>`;
+      window.setTimeout(() => { region.innerHTML = ''; }, 2800);
+    }
+    function stat(label, value, detail) { return `<div class="stat"><span>${label}</span><strong>${value}</strong><small>${detail}</small></div>`; }
+    function panel(title, body, badge = '') {
+      return `<section class="panel"><div class="panel-head"><h2>${title}</h2>${badge}</div><div class="panel-body">${body}</div></section>`;
+    }
+    function readinessRow(icon, title, detail, value, tone = '') {
+      return `<div class="readiness-row"><div class="readiness-label"><span class="readiness-icon">${ICONS[icon]}</span><span><b>${title}</b><small>${detail}</small></span></div><span class="badge ${tone}"><i class="badge-dot"></i>${value}</span></div>`;
+    }
+    function pageHeader(title, subtitle, badge = '') {
+      return `<div class="page-head"><div><div class="eyebrow">${ACCOUNTS[state.account].role} workspace</div><h1>${title}</h1><p>${subtitle}</p></div>${badge}</div>`;
+    }
+    function parseHinglish(text) {
+      const aliases = [
+        { id: 'atta', name: 'Wheat atta', unit: 'kg', words: ['wheat flour', 'atta', 'aata', 'gehu', 'गेहूं', 'आटा'], brands: ['Aashirvaad', 'Pillsbury', 'Fortune'] },
+        { id: 'milk', name: 'Milk', unit: 'L', words: ['milk', 'doodh', 'दूध'], brands: ['Amul', 'Gokul', 'Chitale'] },
+        { id: 'sugar', name: 'Sugar', unit: 'kg', words: ['sugar', 'cheeni', 'chini', 'shakkar', 'चीनी', 'शक्कर'], brands: ['Madhur', 'Trust', 'Dhampure'] },
+        { id: 'dal', name: 'Toor dal', unit: 'kg', words: ['toor dal', 'tur dal', 'arhar dal', 'dal', 'daal', 'दाल'], brands: ['Tata Sampann', 'Fortune', '24 Mantra'] },
+        { id: 'oil', name: 'Cooking oil', unit: 'L', words: ['cooking oil', 'sunflower oil', 'tel', 'तेल', 'oil'], brands: ['Fortune', 'Saffola', 'Gemini'] },
+        { id: 'salt', name: 'Salt', unit: 'kg', words: ['tata nano', 'tata namak', 'टाटा नैनो', 'टाटा नमक', 'namak', 'salt', 'नमक'], brands: ['Tata Salt', 'Aashirvaad', 'Catch'] },
+        { id: 'tea', name: 'Tea', unit: 'pack', words: ['tea', 'chai', 'चाय'], brands: ['Tata Tea Gold', 'Red Label', 'Wagh Bakri'] },
+        { id: 'rice', name: 'Rice', unit: 'kg', words: ['rice', 'chawal', 'चावल'], brands: ['India Gate', 'Daawat', 'Fortune'] },
+        { id: 'eggs', name: 'Eggs', unit: 'dozen', words: ['eggs', 'egg', 'anda', 'ande', 'अंडे'], brands: ['Eggoz', 'Keggs', 'Country Delight'] },
+        { id: 'detergent', name: 'Detergent powder', unit: 'kg', words: ['detergent', 'washing powder', 'surf excel easy wash', 'surf excel', 'surf', 'ariel', 'tide', 'rin'], brands: ['Surf Excel', 'Ariel', 'Tide', 'Rin'] },
+        { id: 'bread', name: 'Bread', unit: 'pack', words: ['bread', 'loaf'], brands: ['Britannia', 'Modern', 'Harvest Gold'] },
+        { id: 'butter', name: 'Butter', unit: 'pack', words: ['butter', 'makhan'], brands: ['Amul', 'Mother Dairy', 'Britannia'] },
+        { id: 'paneer', name: 'Paneer', unit: 'pack', words: ['paneer'], brands: ['Amul', 'Gowardhan', 'Chitale'] },
+        { id: 'soap', name: 'Bath soap', unit: 'pack', words: ['bath soap', 'soap'], brands: ['Dove', 'Lux', 'Dettol'] },
+        { id: 'toothpaste', name: 'Toothpaste', unit: 'pack', words: ['toothpaste', 'tooth paste'], brands: ['Colgate', 'Pepsodent', 'Sensodyne'] },
+        { id: 'biscuits', name: 'Biscuits', unit: 'pack', words: ['biscuits', 'biscuit', 'parle-g', 'parle g'], brands: ['Parle-G', 'Good Day', 'Marie Gold'] }
+      ];
+      const numbers = { ek: '1', एक: '1', do: '2', दो: '2', teen: '3', तीन: '3', char: '4', chaar: '4', चार: '4', paanch: '5', panch: '5', पांच: '5', पाँच: '5', aadha: '0.5', आधा: '0.5', half: '0.5', pav: '0.25', पाव: '0.25', dedh: '1.5', डेढ़: '1.5' };
+      const unitWords = { kilo: 'kg', kilos: 'kg', kilogram: 'kg', kg: 'kg', litre: 'L', litres: 'L', liter: 'L', liters: 'L', ltr: 'L', l: 'L', ml: 'ml', gram: 'g', grams: 'g', gm: 'g', g: 'g', packet: 'pack', packets: 'pack', pack: 'pack', packs: 'pack', dozen: 'dozen', darjan: 'dozen', 'किलो': 'kg', 'किलोग्राम': 'kg', 'लीटर': 'L', 'लिटर': 'L', 'ग्राम': 'g', 'पैक': 'pack', 'दर्जन': 'dozen' };
+      const source = String(text || '').toLowerCase().replace(/[.!?](?!\d)/g, ',').replace(/(\d+)\s+and\s+(?:a\s+)?half\b/g, '$1.5');
+      const normalized = source
+        .replace(/(^|[^\p{L}\p{N}])(?:do|2)\s+(?:kilo|kg)\s+(?:aadha|half)(?=$|[^\p{L}\p{N}])/giu, (_, prefix) => `${prefix}2.5 kg`)
+        .replace(/(^|[^\p{L}\p{N}])दो\s+(?:किलो|kg)\s+आधा(?=$|[^\p{L}\p{N}])/gu, (_, prefix) => `${prefix}2.5 किलो`)
+        .replace(/(^|[^\p{L}\p{N}])(?:ek|1)\s+(?:kilo|kg)\s+(?:aadha|half)(?=$|[^\p{L}\p{N}])/giu, (_, prefix) => `${prefix}1.5 kg`)
+        .replace(/(^|[^\p{L}\p{N}])एक\s+(?:किलो|kg)\s+आधा(?=$|[^\p{L}\p{N}])/gu, (_, prefix) => `${prefix}1.5 किलो`);
+      const segments = normalized.split(/,|;|\n|\b(?:and|aur|phir|then)\b/).map(part => part.trim()).filter(Boolean);
+      const items = [];
+      const unknown = [];
+      for (const segment of segments) {
+        const product = aliases.flatMap(entry => entry.words.map(word => ({ entry, word }))).sort((a, b) => b.word.length - a.word.length).find(({ word }) => {
+          const safe = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          return new RegExp(`(^|[^\\p{L}\\p{N}])${safe}($|[^\\p{L}\\p{N}])`, 'iu').test(segment);
+        })?.entry;
+        if (!product) { unknown.push(segment); continue; }
+        let cleaned = segment;
+        for (const [word, value] of Object.entries(numbers)) cleaned = cleaned.replace(new RegExp(`(^|[^\\p{L}\\p{N}])${word}(?=$|[^\\p{L}\\p{N}])`, 'giu'), `$1${value}`);
+        cleaned = cleaned.replace(/(^|[^\p{L}\p{N}])(\d+(?:\.\d+)?)\s*(kilo|kg|किलो)\s+(?:and\s+|aur\s+)?(0\.5|0\.25|1\.5)(?=$|[^\p{L}\p{N}])/giu, (_, prefix, amount, unit, fraction) => `${prefix}${Number(amount) + Number(fraction)} ${unit}`);
+        let quantity = 1;
+        let unit = product.unit;
+        const unitMatch = cleaned.match(/(?:^|[^\p{L}\p{N}])(\d+(?:\.\d+)?)\s*(kilos?|kilograms?|kg|litres?|liters?|ltr|l|ml|grams?|gm|g|packs?|packets?|dozen|darjan|किलो|किलोग्राम|लीटर|लिटर|ग्राम|पैक|दर्जन)(?=$|[^\p{L}\p{N}])/iu);
+        if (unitMatch) {
+          quantity = Number(unitMatch[1]);
+          unit = unitWords[unitMatch[2].toLowerCase()] || unitWords[unitMatch[2]] || product.unit;
+        } else {
+          const quantityMatch = cleaned.match(/(?:^|[^\d])(\d+(?:\.\d+)?)(?=\s|$)/);
+          if (quantityMatch) quantity = Number(quantityMatch[1]);
+        }
+        if (unit === 'g' && product.unit === 'kg') { quantity /= 1000; unit = 'kg'; }
+        if (unit === 'ml' && product.unit === 'L') { quantity /= 1000; unit = 'L'; }
+        const brand = product.brands.find(candidate => {
+          const brandAliases = candidate === 'Tata Salt' ? ['Tata Salt', 'Tata Namak', 'Tata Nano', 'टाटा नमक', 'टाटा नैनो'] : candidate === 'Fortune' ? ['Fortune', 'फॉर्च्यून'] : [candidate];
+          return brandAliases.some(alias => {
+            const brandPattern = alias.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+            return new RegExp(`(^|[^\\p{L}\\p{N}])${brandPattern}(?:\\s+(?:wala|ka|वाला|का))?($|[^\\p{L}\\p{N}])`, 'iu').test(segment);
+          });
+        }) || null;
+        const prior = items.find(item => item.id === product.id && item.brand === brand);
+        if (prior) prior.quantity = Math.round((prior.quantity + quantity) * 1000) / 1000;
+        else items.push({ id: product.id, name: product.name, quantity: Math.round(quantity * 1000) / 1000, unit: product.unit, brand, source: segment });
+      }
+      return { items, unknown };
+    }
+    function voiceOrderPanel() {
+      const language = state.language;
+      const copy = language === 'hi'
+        ? { title: 'आपको क्या चाहिए?', subtitle: 'हिंदी में बोलें या नीचे लिखें।', placeholder: 'जैसे: दो किलो आटा, आधा किलो चीनी', sample: 'हिंग्लिश उदाहरण भरें', review: 'सूची देखें', clear: 'साफ़ करें', result: 'आपकी सूची', empty: 'पहचानी गई चीज़ें यहां समीक्षा के लिए दिखेंगी।', listening: 'सुन रहे हैं…' }
+        : language === 'mix'
+          ? { title: 'Aapko kya chahiye?', subtitle: 'Hindi, English ya Hinglish mein boliye.', placeholder: 'Jaise: do kilo atta, aadha kilo cheeni', sample: 'Hinglish example try karein', review: 'Review list', clear: 'Clear', result: 'Your list', empty: 'Parsed items yahan review ke liye dikhte hain.', listening: 'Sun rahe hain…' }
+          : { title: 'What do you need?', subtitle: 'Speak in English, Hindi, or type your list.', placeholder: 'Try: 2 kg atta, aadha kilo cheeni', sample: 'Try a Hinglish example', review: 'Review list', clear: 'Clear', result: 'Your list', empty: 'Recognized items will appear here for review.', listening: 'Listening…' };
+      const languageChoices = [['en', 'English'], ['hi', 'हिंदी'], ['mix', 'Hindi + English']];
+      const resultChips = customerDraft.items.map((item, index) => `<span class="voice-chip">${esc(item.name)} · ${esc(item.quantity)} ${esc(item.unit)}${item.brand ? ` · ${esc(item.brand)} locked` : ' · any brand'}<button type="button" data-remove-line="${index}" aria-label="Remove ${esc(item.name)}">×</button></span>`).join('');
+      const unknownChips = customerDraft.unknown.map((phrase, index) => `<span class="voice-chip unknown">Not recognised: ${esc(phrase)}<button type="button" data-remove-unknown="${index}" aria-label="Remove unrecognised phrase">×</button></span>`).join('');
+      return `<section class="voice-order" aria-label="Voice order mock"><div class="voice-top"><div><h2>${copy.title}</h2><p>${customerDraft.listening ? copy.listening : copy.subtitle}</p></div><div class="language-switch" role="group" aria-label="Voice language">${languageChoices.map(([value, label]) => `<button type="button" data-language="${value}" aria-pressed="${language === value}">${label}</button>`).join('')}</div></div><div class="voice-input-row"><button class="voice-mic" type="button" data-voice="toggle" aria-label="${customerDraft.listening ? 'Stop voice input' : 'Start voice input'}" aria-pressed="${customerDraft.listening}">${ICONS.mic}</button><textarea id="voice-text" rows="2" lang="${language === 'en' ? 'en-IN' : 'hi-IN'}" placeholder="${copy.placeholder}">${esc(customerDraft.text)}</textarea></div><button class="voice-sample" type="button" data-voice="sample">${copy.sample}</button>${customerDraft.error ? `<p class="voice-error" role="status">${esc(customerDraft.error)}</p>` : ''}<div class="voice-actions"><button class="voice-button" type="button" data-voice="clear">${copy.clear}</button><button class="voice-button primary" type="button" data-voice="parse">${copy.review}</button></div>${customerDraft.items.length || customerDraft.unknown.length ? `<div class="voice-results" aria-label="${copy.result}">${resultChips}${unknownChips}</div>` : `<p class="voice-empty">${copy.result}: ${copy.empty}</p>`}</section>`;
+    }
+    function parseCustomerDraft() {
+      const parsed = parseHinglish(customerDraft.text);
+      customerDraft.items = parsed.items;
+      customerDraft.unknown = parsed.unknown;
+      customerDraft.error = parsed.items.length || parsed.unknown.length ? '' : 'Try a product name, such as atta, doodh, cheeni, or namak.';
+    }
+    function toggleVoiceInput() {
+      if (customerDraft.listening && speechRecognizer) { speechRecognizer.stop(); return; }
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Recognition) { customerDraft.error = 'Voice input is unavailable in this browser. Type your list instead.'; render(); return; }
+      try {
+        speechRecognizer = new Recognition();
+        speechRecognizer.lang = state.language === 'en' ? 'en-IN' : 'hi-IN';
+        speechRecognizer.interimResults = true;
+        speechRecognizer.continuous = false;
+        speechRecognizer.onresult = event => {
+          customerDraft.text = Array.from(event.results).map(result => result[0].transcript).join(' ');
+          const input = document.getElementById('voice-text');
+          if (input) input.value = customerDraft.text;
+        };
+        speechRecognizer.onerror = event => {
+          customerDraft.error = event.error === 'not-allowed' ? 'Microphone access is blocked. Type your list instead.' : 'Voice input stopped. You can type your list instead.';
+        };
+        speechRecognizer.onend = () => {
+          customerDraft.listening = false;
+          if (customerDraft.text.trim()) parseCustomerDraft();
+          render();
+        };
+        speechRecognizer.start();
+        customerDraft.listening = true;
+        customerDraft.error = '';
+        render();
+      } catch {
+        customerDraft.listening = false;
+        customerDraft.error = 'Microphone could not start. Type your list instead.';
+        render();
+      }
+    }
+    function foundationSummary() {
+      const storeCount = STORES.length;
+      const zoneOpen = storeCount >= state.config.min_stores_to_open;
+      const thresholdDelta = Math.abs(storeCount - state.config.min_stores_to_open);
+      const thresholdDetail = zoneOpen ? `${thresholdDelta} above opening threshold` : `${thresholdDelta} more stores needed to open`;
+      return `<div class="stats">${stat('Active stores', String(storeCount), thresholdDetail)}${stat('Packaged SKUs', String(SKU_SEEDS.length), 'Across 16 seeded categories')}${stat('Synonym rules', String(SYNONYMS.length), 'Hindi and Hinglish mappings')}${stat('Demo roles', String(Object.keys(ACCOUNTS).length), 'Customer, retailer, rider, ops')}</div>
+        <div class="columns">
+          ${panel('Foundation status', `<div class="readiness">
+            ${readinessRow('pin', 'Kothrud, Pune', 'Zone · PIN 411038', zoneOpen ? 'Open' : 'Closed', zoneOpen ? '' : 'orange')}
+            <div class="divider"></div>
+            ${readinessRow('shop', 'Store threshold', `Minimum ${state.config.min_stores_to_open} active stores`, `${storeCount} / ${state.config.min_stores_to_open}`, zoneOpen ? '' : 'orange')}
+            ${readinessRow('box', 'Fresh products', state.config.fresh_enabled ? 'Launch flag is enabled' : 'Launch flag is disabled', state.config.fresh_enabled ? 'On' : 'Off', state.config.fresh_enabled ? '' : 'gold')}
+            ${readinessRow('check', 'Local foundation data', 'Seed snapshot loaded in this browser', 'Ready')}
+          </div>`)}
+          ${panel('Launch defaults', `<div class="field-list">
+            ${fieldRow('Minimum basket', `₹${state.config.min_basket_value}`)}
+            ${fieldRow('Customer delivery', `₹${state.config.delivery_fee}`)}
+            ${fieldRow('Store commission', `${state.config.commission_percent}%`)}
+            ${fieldRow('Bid window', `${state.config.bid_window_minutes} minutes`)}
+            ${fieldRow('Slot capacity', `${state.config.slot_capacity} orders`)}
+          </div>`, '<span class="badge">Local config</span>')}
+        </div>`;
+    }
+    function fieldRow(label, value) { return `<div class="field-row"><span>${label}</span><strong>${value}</strong></div>`; }
+    function roleOverview() {
+      const role = state.account;
+      const account = ACCOUNTS[role];
+      const descriptions = {
+        customer: ['Customer profile', 'Kothrud is open for launch. Your account is ready for the next product phase.'],
+        retailer: ['Store profile', 'Your store is active in the Kothrud zone. This local session contains no customer identity records.'],
+        rider: ['Rider profile', 'Your rider account is provisioned for Kothrud, Pune. Fulfilment tools are outside this phase.'],
+        ops: ['Operations console', 'Seed records and launch configuration are available for this local foundation demo.']
+      };
+      const [heading, description] = descriptions[role];
+      if (role === 'ops') return `${pageHeader('Foundation overview', 'Launch zone, seed data, and platform defaults.', '<span class="badge"><i class="badge-dot"></i>Local demo</span>')}${foundationSummary()}`;
+      const roleStats = role === 'customer'
+        ? `${stat('Zone', STORES.length >= state.config.min_stores_to_open ? 'Open' : 'Closed', 'Kothrud · 411038')}${stat('Nearby stores', '18', 'Active in your zone')}${stat('Catalogue', '150', 'Packaged grocery SKUs')}${stat('Fresh items', state.config.fresh_enabled ? 'On' : 'Off', 'Launch category flag')}`
+        : role === 'retailer'
+          ? `${stat('Store status', 'Active', 'Kothrud · 411038')}${stat('Zone stores', '18', 'Active retailer locations')}${stat('Seed catalogue', '150', 'Packaged grocery SKUs')}${stat('Customer data', 'None', 'Identity fields excluded')}`
+          : `${stat('Account', 'Ready', 'Rider role provisioned')}${stat('Assigned zone', 'Kothrud', 'Pune · 411038')}${stat('Zone stores', '18', 'Active retailer locations')}${stat('Foundation', 'Phase 1', 'Fulfilment is not enabled')}`;
+      const foundationPanels = `<div class="columns" style="margin-top:15px">${panel('Zone record', `<div class="field-list">${fieldRow('Zone', 'Kothrud, Pune')}${fieldRow('PIN code', '411038')}${fieldRow('Availability', STORES.length >= state.config.min_stores_to_open ? 'Open' : 'Closed')}${fieldRow('Minimum active stores', String(state.config.min_stores_to_open))}</div>`)}${panel('Seed coverage', `<div class="field-list">${fieldRow('Retailers', '18 active demo stores')}${fieldRow('Catalogue', '150 packaged FMCG SKUs')}${fieldRow('Fresh category', state.config.fresh_enabled ? 'Enabled' : 'Disabled')}${fieldRow('Data mode', 'Local mock data')}</div>`)}</div>`;
+      const rolePanel = role === 'retailer'
+        ? `<section class="privacy-box"><h3>Retailer data boundary</h3><div class="privacy-columns"><div><span>Permitted order fields</span><p>Order ID, items, quantities, requested brands, slot, zone</p></div><div><span>Never available</span><p class="never">Customer name, phone, address</p></div></div></section>`
+        : role === 'customer' ? `${voiceOrderPanel()}${foundationPanels}` : foundationPanels;
+      return `${pageHeader(heading, `Foundation access for ${account.name}.`, `<span class="badge"><i class="badge-dot"></i>Account ready</span>`)}<div class="role-banner">${roleIcon(role)}<div><h2>${account.name}</h2><p>${description}</p></div></div><div class="stats" style="margin-top:15px">${roleStats}</div>${rolePanel}`;
+    }
+    function storesTable() {
+      return `<div class="table-scroll"><table><thead><tr><th>Store</th><th>Zone</th><th>Status</th><th>Store ID</th></tr></thead><tbody>${STORES.map((store, index) => `<tr><td><strong>${store}</strong></td><td class="td-muted">Kothrud · 411038</td><td><span class="badge"><i class="badge-dot"></i>Active</span></td><td class="td-muted">KT-${String(index + 1).padStart(3, '0')}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    function catalogueTable() {
+      return `<div class="table-scroll"><table><thead><tr><th>SKU</th><th>Product / pack</th><th>Brand</th><th class="n">MRP</th><th class="n">Benchmark</th></tr></thead><tbody>${SKU_SEEDS.map(sku => `<tr><td class="td-muted">${sku.id}</td><td><strong>${sku.product}</strong><br><span class="td-muted">${sku.pack}</span></td><td>${sku.brand}</td><td class="n">₹${sku.mrp}</td><td class="n">₹${sku.benchmark}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    function schemaTable() {
+      return `<div class="panel-body"><p class="sub">Foundation model: ${SCHEMA_TABLES.length} application tables. This page describes the local mock only; it does not create a database or enforce server-side policies.</p><div class="table-scroll" style="margin-top:12px"><table><thead><tr><th>Table</th><th>Mock contents</th></tr></thead><tbody>${SCHEMA_TABLES.map(table => `<tr><td><strong>${table}</strong></td><td class="td-muted">${table === 'users' ? 'Role-linked demo accounts' : table === 'skus' ? '150 packaged product, brand, pack and MRP records' : table === 'benchmark_prices' ? 'Per-SKU local benchmark values' : table === 'config' ? 'Launch defaults editable by Ops' : table === 'synonyms' ? `${SYNONYMS.length} seeded Hindi / Hinglish rules` : 'Foundation record shape'}</td></tr>`).join('')}</tbody></table></div><div class="privacy-box"><h3>Mock access boundary</h3><div class="privacy-columns"><div><span>Retailer-visible fields</span><p>Order ID, items, quantities, requested brands, slot, zone</p></div><div><span>Excluded customer fields</span><p class="never">Name, phone, address</p></div></div></div></div>`;
+    }
+    function synonymsTable() {
+      return `<div class="table-scroll"><table><thead><tr><th>Phrase</th><th>Resolves to</th><th>Rule type</th></tr></thead><tbody>${SYNONYMS.map(([phrase, resolution, type]) => `<tr><td><strong>${phrase}</strong></td><td>${resolution}</td><td><span class="badge ${type === 'Mishearing' ? 'orange' : type === 'Brand lock' ? 'gold' : ''}">${type}</span></td></tr>`).join('')}</tbody></table></div>`;
+    }
+    function dataView() {
+      const tabs = [['stores', 'Stores · 18'], ['catalogue', 'Catalogue · 150'], ['synonyms', `Synonyms · ${SYNONYMS.length}`], ['schema', `Schema · ${SCHEMA_TABLES.length}`]];
+      let content = dataTab === 'stores' ? storesTable() : dataTab === 'catalogue' ? catalogueTable() : dataTab === 'schema' ? schemaTable() : synonymsTable();
+      return `${pageHeader('Seed data', 'Kothrud launch records loaded in the local demo.', '<span class="badge">411038</span>')}<section class="panel"><div class="data-toolbar" role="tablist" aria-label="Seed data collection">${tabs.map(([key, label]) => `<button class="filter-button" type="button" role="tab" data-data-tab="${key}" aria-selected="${dataTab === key}" aria-pressed="${dataTab === key}">${label}</button>`).join('')}</div>${content}</section>`;
+    }
+    function configView() {
+      return `${pageHeader('Configuration', 'Launch values stored in this browser for the demo.', '<span class="badge orange">Ops only</span>')}<form class="panel" id="config-form"><div class="panel-head"><h2>Platform defaults</h2><span class="badge">Local config table</span></div><div class="panel-body"><div class="config-grid">${CONFIG_FIELDS.map(([key, label, unit, note]) => `<div class="config-field"><div><label for="cfg-${key}">${label}</label><small>${note}</small></div>${unit === 'boolean' ? `<input id="cfg-${key}" name="${key}" type="checkbox" value="true" ${state.config[key] ? 'checked' : ''} aria-label="${label}">` : `<input id="cfg-${key}" name="${key}" type="number" min="0" step="1" value="${esc(state.config[key])}" aria-label="${label} (${unit})">`}</div>`).join('')}</div><div class="config-actions"><button class="button" type="reset">Discard changes</button><button class="button primary" type="submit">Save configuration</button></div></div></form>`;
+    }
+    function renderLogin() {
+      document.getElementById('session-name').textContent = '';
+      document.getElementById('switch-account').hidden = true;
+      document.getElementById('app').innerHTML = `<section class="login-wrap"><div class="login-intro"><h1>A local foundation<br>for <span>Kothrud.</span></h1><p>Phase 1 seed environment for BachatBazaar. Choose a demo role to inspect the foundation.</p></div><div class="role-grid">${Object.entries(ACCOUNTS).map(([key, account]) => `<button class="role-card" type="button" data-account="${key}" data-role="${key}">${roleIcon(key)}<span><strong>${account.role}</strong><small>${account.name}<br>${account.description}</small></span></button>`).join('')}</div><div class="login-foot"><i class="status-dot"></i>Local mock data · no external services connected</div></section>`;
+    }
+    function renderApp() {
+      const account = ACCOUNTS[state.account];
+      document.getElementById('session-name').textContent = `${account.name} · ${account.role}`;
+      document.getElementById('switch-account').hidden = false;
+      const navItems = [['overview', 'Overview', 'overview'], ...(state.account === 'ops' ? [['data', 'Seed data', 'data'], ['config', 'Configuration', 'config']] : [])];
+      const content = activeTab === 'data' ? dataView() : activeTab === 'config' && state.account === 'ops' ? configView() : roleOverview();
+      document.getElementById('app').innerHTML = `<div class="app-shell"><aside class="side"><div class="zone-card"><div class="eyebrow">Launch zone</div><h2>Kothrud, Pune</h2><p>PIN 411038</p></div><nav class="side-nav" aria-label="Main navigation">${navItems.map(([key, label, icon]) => `<button class="nav-button" type="button" data-tab="${key}" aria-current="${activeTab === key ? 'page' : 'false'}">${ICONS[icon]}${label}</button>`).join('')}</nav><div class="side-note">Phase 1 foundation<br>Local data snapshot · v1</div></aside><section class="main-content">${content}</section></div>`;
+    }
+    function render() { state.account ? renderApp() : renderLogin(); }
+
+    document.getElementById('app').addEventListener('click', event => {
+      const accountButton = event.target.closest('[data-account]');
+      if (accountButton) {
+        state.account = accountButton.dataset.account;
+        activeTab = 'overview';
+        persist();
+        render();
+        return;
+      }
+      const navButton = event.target.closest('[data-tab]');
+      if (navButton) {
+        activeTab = navButton.dataset.tab;
+        render();
+        return;
+      }
+      const dataButton = event.target.closest('[data-data-tab]');
+      if (dataButton) {
+        dataTab = dataButton.dataset.dataTab;
+        render();
+        return;
+      }
+      const languageButton = event.target.closest('[data-language]');
+      if (languageButton) {
+        state.language = languageButton.dataset.language;
+        persist();
+        render();
+        return;
+      }
+      const voiceButton = event.target.closest('[data-voice]');
+      if (voiceButton) {
+        const action = voiceButton.dataset.voice;
+        if (action === 'toggle') { toggleVoiceInput(); return; }
+        if (action === 'sample') customerDraft.text = 'do kilo aadha atta, ek litre doodh, aadha kilo cheeni, tata nano, fortune wala tel ek litre, bada packet';
+        if (action === 'parse' || action === 'sample') parseCustomerDraft();
+        if (action === 'clear') customerDraft = { text: '', items: [], unknown: [], listening: false, error: '' };
+        render();
+        return;
+      }
+      const removeLine = event.target.closest('[data-remove-line]');
+      if (removeLine) {
+        customerDraft.items.splice(Number(removeLine.dataset.removeLine), 1);
+        render();
+        return;
+      }
+      const removeUnknown = event.target.closest('[data-remove-unknown]');
+      if (removeUnknown) {
+        customerDraft.unknown.splice(Number(removeUnknown.dataset.removeUnknown), 1);
+        render();
+      }
+    });
+    document.getElementById('app').addEventListener('input', event => {
+      if (event.target.id === 'voice-text') customerDraft.text = event.target.value;
+    });
+    document.getElementById('app').addEventListener('submit', event => {
+      if (event.target.id !== 'config-form') return;
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const next = { ...state.config };
+      for (const [key, , unit] of CONFIG_FIELDS) {
+        if (unit === 'boolean') { next[key] = formData.get(key) === 'true'; continue; }
+        const parsed = Number(formData.get(key));
+        if (!Number.isFinite(parsed) || parsed < 0) { showToast('Enter valid non-negative values for every setting.'); return; }
+        next[key] = parsed;
+      }
+      state.config = next;
+      persist();
+      render();
+      showToast('Configuration saved to local demo data.');
+    });
+    document.getElementById('app').addEventListener('reset', event => {
+      if (event.target.id === 'config-form') window.setTimeout(() => render(), 0);
+    });
+    document.getElementById('switch-account').addEventListener('click', () => {
+      state.account = null;
+      activeTab = 'overview';
+      persist();
+      render();
+    });
+    window.addEventListener('storage', event => {
+      if (event.key === STORE_KEY) { state = loadState(); render(); }
+    });
+    render();
+  </script>
+  <script src="full-app.js?v=20261010-brand2"></script>
+</body>
+</html>
